@@ -1,0 +1,74 @@
+Data Partitioning :=
+=====================
+* iImpala & Hive Partitioning :
+		CREATE EXTERNAL TABLE accounts_by_state(
+		 cust_id INT,
+		 fname STRING,
+		 lname STRING,
+		 address STRING,
+		 city STRING,
+		 zipcode STRING)
+		 PARTITIONED BY (state STRING)
+		 ROW FORMAT DELIMITED
+		 FIELDS TERMINATED BY ','
+		 LOCATION '/loudacre/accounts_by_state';
+		 
+* Nested Partitioing :
+		PARTITIONED BY (state STRING, zipcode STRING)
+
+* Create new partition Dynamically from existing data :
+		INSERT OVERWRITE TABLE accounts_by_state
+		 PARTITION(state)
+		 SELECT cust_id, fname, lname, address,
+ 			city, zipcode, state FROM accounts;
+* Static partitioing is the same as dynamic partitioing in term of command :
+		CREATE TABLE call_logs (
+		 call_time STRING,
+		 phone STRING,
+		 event_type STRING,
+		 details STRING)
+		PARTITIONED BY (call_date STRING)
+		 ROW FORMAT DELIMITED
+		 FIELDS TERMINATED BY ',';
+		
+		ALTER TABLE call_logs
+ 		ADD PARTITION (call_date=' 2014-10-02' ) ;
+ 
+* Load Data into static partition :
+		LOAD DATA INPATH ' /mystaging/call-20141002.log'
+ 		INTO TABLE call_logs
+ 		PARTITION(call_date=' 2014-10-02') ;
+ 
+* To overwrite Data in Partition :
+		LOAD DATA INPATH ' /mystaging/call-20141002.log'
+		INTO TABLE call_logs OVERWRITE
+		PARTITION(call_date=' 2014-10-02') ;
+		
+* To view current partitions in a Table :
+			SHOW PARTITIONS call_logs;
+			
+* Alter Table and add partition :
+		ALTER TABLE call_logs
+ 		ADD PARTITION (call_date='2013-06-05')
+ 		LOCATION '/loudacre/call_logs/call_date=2013-06-05';
+ 		
+* Drop Partition from Table :
+		ALTER TABLE call_logs
+ 		DROP PARTITION (call_date='2013-06-06');
+ 		
+* In	Hive,	use	the	 MSCK REPAIR TABLE	command	to	create	(or	recreate)	 partitions	for	an	existing	table	 :
+		MSCK REPAIR TABLE call_logs;
+
+* In	older	versions	of	Hive,	dynamic	partitioning	is	not	enabled	by	default	 ,to enable it use below :
+		SET hive.exec.dynamic.partition=true;
+		SET hive.exec.dynamic.partition.mode=nonstrict;
+
+* Hive configuration to limit create manay partitions:
+	-Maximum number if dynamic partitions that can be create by any given node involved in a query ,defult is 100
+			hive.exec.max.dynamic.partitions.pernode
+			
+- Totla numner of dynamic partitions that can be create by one HiveQL statment,defult is 1000 :
+ 		hive.exec.max.dynamic.partitions
+ 		
+- Maximum	total	files	(on	all	nodes)	created	by	a	query	, Default	100000	 :
+		hive.exec.max.created.files

@@ -1,0 +1,105 @@
+Hive & Impala :=
+===================
+* To create New Database :
+		CREATE DATABASE loudacre;
+* Conditionally Create Database :
+		CREATE DATABASE IF NOT EXIST loudacre;
+* Remove Database :
+		DROP DATABASE loudacre;
+		DROP DATABASE IF NOT EXIST loudacre;
+* if the database contains data above may fail ,Add CASCADE command to remove data from HDFS as well :
+		DROP DATABASE loudacre CASCADE;
+* Create table command :
+		CREATE TABLE tablename (colname DATATYPE, ... )
+ 		ROW FORMAT DELIMITED
+ 		FIELDS TERMINATED BY char
+ 		STORED AS {TEXTFILE|SEQUENCEFILE|…} ;
+ 		
+ 		CREATE TABLE jobs (
+		 id INT,
+		 title STRING,
+		 salary INT,
+		 posted TIMESTAMP
+		 )
+		 ROW FORMAT DELIMITED
+		 FIELDS TERMINATED BY ',' ;
+		 
+* Use	 LIKE	to	create	a	new	table	based	on	an	exisMng	table	definiMon	 :
+		CREATE TABLE jobs_archived LIKE jobs;
+		- New	 table will contain no data	
+		
+* Creating  Tables Based On Existing Data :
+		CREATE TABLE ny_customers AS
+		 SELECT cust_id, fname, lname
+		 FROM customers
+		 WHERE state = 'NY';
+		 
+*  Use LOCATION	to specify the directory where table data	resides :
+		CREATE TABLE jobs (
+		 id INT,
+		 title STRING,
+		 salary INT,
+		 posted TIMESTAMP
+		 )
+		 ROW FORMAT DELIMITED
+		 FIELDS TERMINATED BY ','
+		 LOCATION '/loudacre/jobs' ;
+		 
+* Dropping a table removes its data in HDFS	,use EXTERNAL	when creaMng the table avoids this behavior	,Dropping an external	table	removes	only	its	 metadata :
+		CREATE EXTERNAL TABLE adclicks
+		 ( campaign_id STRING,
+		 click_time TIMESTAMP,
+		 keyword STRING,
+		 site STRING,
+		 placement STRING,
+		 was_clicked BOOLEAN,
+		 cost SMALLINT)
+		 LOCATION '/loudacre/ad_data';
+		 
+*  SHOW TABLES command	lists	all	tables in the current	database	
+* The	 DESCRIBE	command	lists	the	fields	in	the	specified	table	
+* DESCRIBE FORMATTED	also	 shows	table	properities 
+* SHOW CREATE TABLE displays	the	SQL	command	to	create	the	table	
+* To	load	data,	simply	add	files	to	the	table’s	directory	in	HDFS	:
+			$ hdfs dfs -mv /tmp/sales.txt /user/hive/warehouse/sales/
+* use	the	 LOAD DATA INPATH	command	from within Hive or Impala :
+			LOAD DATA INPATH '/tmp/sales.txt' INTO TABLE sales;
+			
+* Add	the	 OVERWRITE	keyword	to	delete	all	records	before	import	 :
+		LOAD DATA INPATH '/tmp/sales.txt' OVERWRITE INTO TABLE sales;
+		
+* Appending	Selected	Records	to	a	Table	:
+		INSERT INTO TABLE accounts_copy SELECT * FROM accounts;
+		
+		INSERT INTO TABLE loyal_customers
+		 SELECT * FROM accounts
+		 WHERE YEAR(acct_create_dt) = 2008
+		 AND acct_close_dt IS NULL;
+		 
+* Loading Data from relational database ;
+		$ sqoop import \
+		 --connect jdbc:mysql://localhost/loudacre \
+		 --username training \
+		 --password training \
+		 --fields-terminated-by '\t' \
+		 --table employees \
+		 --hive-import
+		 
+* Creating Table in Hcatalog :
+		$ hcat -e "CREATE TABLE vendors \
+		 (id INT, company STRING, email STRING) \
+		 ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' \
+		 LOCATION '/dualcore/vendors'"
+		 
+* save	longer	commands	to	a	text	file	and	use	the	 -f	opMon	 :
+		$ hcat -f createtable.txt
+		
+* Displaying	Metadata	in	 HCatalog :
+		$ hcat -e 'SHOW TABLES'
+		
+* The	 DESCRIBE	command	lists	the	fields	in	a	specified	table	 :
+		hcat -e 'DESCRIBE vendors';
+		hcat -e 'DESCRIBE FORMATTED vendors' ;
+		
+* Removing	a	Table	in	 HCatalog :
+		hcat -e 'DROP TABLE vendors';

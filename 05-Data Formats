@@ -1,0 +1,87 @@
+Data Format :
+=============
+
+* Use	the	 avro-tools	command	to	work	with	binary	files :
+		$ avro-tools tojson mydatafile.avro
+		$ avro-tools getschema mydatafile.avro
+		
+* Sqoop	supports	imporTng	data	as	Avro,	or	exporTng	data	from	exisTng	Avro	data	files	,sqoop import	saves	the	schema	JSON	file	in	local	directory	:
+		$ sqoop import \
+		 --connect jdbc:mysql://localhost/loudacre \
+		 --username training --password training \
+		 --table accounts \
+		 --target-dir /loudacre/accounts_avro \
+		 --as-avrodatafile
+		 
+* Hive Impala Table creation	from	schema in	a	separate	file	:
+		CREATE TABLE order_details_avro
+			 STORED AS AVRO
+			 TBLPROPERTIES (' avro.schema.url' =
+			 'hdfs://localhost/loudacre/accounts_schema.json');
+			 
+* Hive Impala Table creation	from	schema in-line	:
+		CREATE TABLE order_details_avro
+		 STORED AS AVRO
+		 TBLPROPERTIES (' avro.schema.literal' =
+		 '{"name": "order",
+		 "type": "record",
+		 "fields": [
+		 {"name":"order_id", "type":"int"},
+		 {"name":"cust_id", "type":"int"},
+		 {"name":"order_date", "type":"string"}
+	 ]}');
+	 
+
+* Sqoop	supports	imporTng	data	as	Parquet,	or	exporTng	data	from	exisTng	 Parquet	data	files	:
+		$ sqoop import \
+		 --connect jdbc:mysql://localhost/loudacre \
+		 --username training --password training \
+		 --table accounts \
+		 --target-dir /loudacre/accounts_parquet \
+		 --as-parquetfile
+		 
+* Using Parquet with Hive and Impala :
+			CREATE TABLE order_details_parquet (
+		 order_id INT,
+		 prod_id INT)
+		 STORED AS PARQUET;
+
+* Impala,	use	 LIKE PARQUET to	use	column	metadata	from	an	existing	 Parquet	data	file	:
+			CREATE EXTERNAL TABLE ad_data
+			 LIKE PARQUET '/loudacre/ad_data/datafile1.parquet'
+			 STORED AS PARQUET
+			 LOCATION '/loudacre/ad_data/' ;
+			 
+
+* Read Data or Schema in Parquet File :
+	$ avro-tools head mydatafile.parquet
+	$ avro-tools schema mydatafile.parquet
+	
+* Using Compression With Sqoop :
+		$ sqoop import \
+		 --connect jdbc:mysql://localhost/loudacre \
+		 --username training --password training \
+		 --table accounts \
+		 --target-dir /loudacre/accounts_parquet \
+		 --as-avrodatafile
+		 --compression-codec org.apache.hadoop.io.compress.SnappyCodec
+
+* Using Compression with Hive & Impala :
+		> CREATE TABLE mytable_parquet LIKE mytable_text STORED AS PARQUET;
+		> set PARQUET_COMPRESSION_CODEC=snappy;
+		> INSERT INTO mytable_parquet  SELECT * FROM mytable_text;
+		 
+* Impala Create parquet Table from Avro table :
+	CREATE EXTERNAL TABLE accounts_parquet 
+  STORED AS PARQUET
+  LOCATION '/loudacre/accounts_parquet/'   
+    AS SELECT * FROM accounts_avro;
+    
+*Hive Creat Parquet Table from Avro Table :
+- NOTE: Hive does not support Create Table as Select with external tables
+		CREATE TABLE accounts_parquet 
+  	STORED AS PARQUET
+  	LOCATION '/loudacre/accounts_parquet/'   
+    AS SELECT * FROM accounts_avro;
+-- change table to external
+		ALTER TABLE accounts_parquet SET TBLPROPERTIES('EXTERNAL'='TRUE')

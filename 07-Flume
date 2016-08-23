@@ -1,0 +1,39 @@
+Configuring	Flume	Components :=
+=================================
+
+agent1.sources = src1
+agent1.sinks = sink1
+agent1.channels = ch1
+
+agent1.channels. ch1.type = memory
+
+agent1.sources. src1.type = spooldir
+agent1.sources. src1.spoolDir = /var/flume/incoming
+agent1.sources. src1.channels = ch1
+
+agent1.sinks. sink1.type = hdfs
+agent1.sinks. sink1.hdfs.path = /loudacre/logdata
+agent1.sinks. sink1.channel = ch1
+
+ HDFS Sink Configuration :=
+ ==========================
+ * Specifying Pattern And Commpression Type:
+ 		agent1.sinks.sink1.type = hdfs
+		agent1.sinks.sink1.hdfs.path = /loudacre/logdata/%y-%m-%d
+		agent1.sinks.sink1.hdfs.codeC = snappy
+		agent1.sinks.sink1.channel = ch1
+		
+* Setting	 fileType	parameter	to	 DataStream	writes	 raw	data	 :
+		agent1.sinks.sink1.type = hdfs
+		agent1.sinks.sink1.hdfs.path = /loudacre/logdata/%y-%m-%d
+		agent1.sinks.sink1.hdfs.fileType = DataStream
+		agent1.sinks.sink1.hdfs.fileSuffix = .txt
+		agent1.sinks.sink1.channel = ch1
+		
+* Strating Fulme Agent :
+- The	 --name argument	must	match	the	agent’s	name	in	the	configuraFon	file	
+		$ flume-ng agent \
+		 --conf /etc/flume-ng/conf \
+		 --conf-file /path/to/flume.conf \
+		 --name agent1 \
+		 -Dflume.root.logger=INFO,console

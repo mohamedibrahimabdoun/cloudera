@@ -1,0 +1,73 @@
+Creating RDD from Collection:=
+==============================
+	myData = ["Alice","Carlos","Frank","Barbara"]
+	myRdd = sc.parallelize(myData)
+	myRdd.take(2)
+	
+Creating RDD from files:=
+=========================
+-From File :
+	MyRDD=sc.textFile("myfile.txt")
+	MyRDD.take(2)
+	
+-From two Files :
+	MyRDD=sc.textFile("myfile1.txt,myfile2.txt")
+	MyRDD.take(2)
+
+-From Multiple Files :
+	MyRDD=sc.textFile("/loudacre/myfile1/*.txt")
+	MyRDD.take(2)
+	
+Whole File-Based RDDs:
+=====================
+* Returns Pair RDD of (filename,data)
+	MyRDD=sc.wholeTextFiles("/loudacre/")
+	MyRDD.take(2)
+	
+Create a Pair RDD from a	tab-separated	file	:
+===============================================
+		users = sc.textFile( f i l e) \
+						 .map(lambda line: line.split('\t')) \
+ 						 .map(lambda fields: (fields[0] , fields[1] ))
+
+Keying weblogs by userID::
+===========================
+users=sc.textFile(logfile) \
+ . keyBy(lambda line: line.split(' ')[2] )
+ 
+ 
+ Pair RDD with Complex Values :
+ =============================
+ 	users=sc.textFile( f i l e) \
+ 		.map(lambda line: line.split()) \
+ 		.map(lambda fields: (fields[0] , (fields[1],fields[2]) ))
+ 		
+Mapping Single Row To Mulitple Pairs [flatMap] :
+===============================================
+	sc.textFile( f i l e) \
+		 .map(lambda line: line.split(' \t' )) \
+		 .map(lambda fields: (fields[0],fields[1]))
+		 . flatMapValues(lambda skus: skus.split(':') )
+
+	
+*Map-Reduce : Word count Exanple :
+=========================
+
+counts = sc.textFile( f i l e) \
+ . flatMap(lambda line: line.split()) \
+ .map(lambda word: (word,1)) \
+ . reduceByKey(lambda v1, v2: v1+v2)
+ 
+
+* Running Spark Application :
+=============================
+	$ spark-submit WordCount.py fileURL
+	$ spark-submit --master local[3] WordCount.py fileURL
+	
+& Run Spark Application on Cluster :
+========================================
+	$ spark-submit --master yarn-cluster WordCount.py fileURL
+	
+	
+* Configuring	Spark	Properities :
+=================================

@@ -1,0 +1,15 @@
+Run a YARN Job:=
+==================
+Exploring the YARN Cluster :
+-----------------------------
+	* Visit	the	YARN	Resource	Manager	(RM)	UI	by	going	to	URL	 http://localhost:8088.
+	* Click	on	the	 [Node	HTTP	Address] to	open	the	Node	Manager	UI
+	* To	return	to	the	Resource	Manager,	 expand ResourceManager	 à RM	Home	on	the left
+
+Submitting an Application to the YARN Cluster:
+----------------------------------------------
+		$ spark-submit --master yarn-cluster wordcount.py /loudacre/kb/*
+		
+Viewing the Application in the Hue Job Browser :
+------------------------------------------------
+		*  Go	to	Hue	in	Firefox,	and	select	the	Job	Browser
